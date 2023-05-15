@@ -84,8 +84,9 @@ public class OrderDetailsController : ControllerBase
 
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(string))]
     public async Task<IActionResult> RemoveOrderDetail([FromQuery] int? orderId, [FromQuery] int? productId)
     {
         if (orderId == null || productId == null)
@@ -94,9 +95,16 @@ public class OrderDetailsController : ControllerBase
         {
             await orderDetailsRepository.RemoveOrderDetail((int)orderId, (int)productId);
         }
-        catch (ArgumentException)
+        catch (Exception ex)
         {
-            return NotFound();
+            if(ex is ArgumentException)
+            {
+                return NotFound(ex.ToString());
+            }   
+            if(ex is SqlException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error while save changes: " + ex.ToString());
+            }
         }
         return NoContent();
     }

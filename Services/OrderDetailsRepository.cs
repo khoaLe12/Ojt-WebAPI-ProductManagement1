@@ -54,12 +54,38 @@ public class OrderDetailsRepository : IOrderDetailsRepository
     public async Task RemoveOrderDetail(int orderId, int productId)
     {
         var orderDetailToDelete = GetOrderDetailByID(orderId, productId);
+        var existingProduct = productRepository.GetProductById(productId);
         if(orderDetailToDelete == null)
         {
             throw new ArgumentException("No Order Detail exists with the given id");
         }
-        context.Remove(orderDetailToDelete);
-        await context.SaveChangesAsync();
+        if (existingProduct == null)
+        {
+            throw new ArgumentException("No Product exists with the given id");
+        }
+
+        //Begin transaction
+        using var transaction = await context.Database.BeginTransactionAsync();
+        try
+        {
+            var quantity = orderDetailToDelete.Quantity;
+
+            //Remove
+            context.Remove(orderDetailToDelete);
+            await context.SaveChangesAsync();
+
+            //Make a change on product
+            existingProduct.UnitsInStock = (short?)(existingProduct.UnitsInStock + quantity);
+            existingProduct.UnitsOnOrder = (short?)(existingProduct.UnitsOnOrder - quantity);
+            await context.SaveChangesAsync();
+
+            //Commit
+            await transaction.CommitAsync();
+        }
+        catch (SqlException ex)
+        {
+            throw ex;
+        }
     }
 
     public async Task<OrderDetail?> UpdateOrderDetail(int orderId, int productId, JsonPatchDocument<OrderDetail> patchDoc, ModelStateDictionary ModelState)
