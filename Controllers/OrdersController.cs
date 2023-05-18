@@ -46,4 +46,21 @@ public class OrdersController : Controller
         repository.CreateNewOrder(newOrder);
         return CreatedAtAction(nameof(GetOrderByID), new { id = newOrder.OrderId }, newOrder);
     }
+
+    [HttpPut]
+    [Route("{idToUpdate}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Order))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateOrder(int idToUpdate, [FromBody] Order updatedOrder)
+    {
+        try
+        {
+            updatedOrder = await repository.UpdateOrder(idToUpdate, updatedOrder);
+        }
+        catch (ArgumentException)
+        {
+            return NotFound();
+        }
+        return Ok(updatedOrder);
+    }
 }
