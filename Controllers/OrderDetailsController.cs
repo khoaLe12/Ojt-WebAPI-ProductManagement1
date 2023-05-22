@@ -15,7 +15,7 @@ public class OrderDetailsController : ControllerBase
     private readonly NorthwindContext context;
     private readonly IOrderDetailsRepository orderDetailsRepository;
 
-    public OrderDetailsController(IOrdersRepository repository, IOrderDetailsRepository orderDetailsRepository, NorthwindContext context)
+    public OrderDetailsController(IOrderDetailsRepository orderDetailsRepository, NorthwindContext context)
     {
         this.orderDetailsRepository = orderDetailsRepository;
         this.context = context;

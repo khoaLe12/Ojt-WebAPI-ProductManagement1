@@ -9,12 +9,12 @@ namespace WebService.Services;
 public class OrderDetailsRepository : IOrderDetailsRepository
 {
     private readonly NorthwindContext context;
-    private readonly IOrdersRepository repository;
+    //private readonly IOrdersRepository repository;
     private readonly IProductsRepository productRepository;
 
-    public OrderDetailsRepository(IOrdersRepository repository, IProductsRepository productRepository, NorthwindContext context)
+    public OrderDetailsRepository(IProductsRepository productRepository, NorthwindContext context)
     {
-        this.repository = repository;
+        //this.repository = repository;
         this.productRepository = productRepository;
         this.context = context;
     }
@@ -25,7 +25,7 @@ public class OrderDetailsRepository : IOrderDetailsRepository
     public async Task<OrderDetail?> AddProductToOrder(OrderDetail newOrderDetail)
     {
         var product = productRepository.GetProductById(newOrderDetail.ProductId);
-        if (repository.GetOrderByID(newOrderDetail.OrderId) == null || product == null)
+        if (context.Orders.FirstOrDefault(o => o.OrderId == newOrderDetail.OrderId) == null || product == null)
         {
             return null;
         }
@@ -54,8 +54,10 @@ public class OrderDetailsRepository : IOrderDetailsRepository
     public async Task RemoveOrderDetail(int orderId, int productId)
     {
         var orderDetailToDelete = GetOrderDetailByID(orderId, productId);
-        var existingProduct = productRepository.GetProductById(productId);
-        if(orderDetailToDelete == null)
+        //var existingProduct = productRepository.GetProductById(productId);
+        var existingProduct = context.Products.FirstOrDefault(p => p.ProductId == productId);
+
+        if (orderDetailToDelete == null)
         {
             throw new ArgumentException("No Order Detail exists with the given id");
         }
@@ -91,7 +93,8 @@ public class OrderDetailsRepository : IOrderDetailsRepository
     public async Task<OrderDetail?> UpdateOrderDetail(int orderId, int productId, JsonPatchDocument<OrderDetail> patchDoc, ModelStateDictionary ModelState)
     {
         var orderDetailToUpdate = GetOrderDetailByID(orderId, productId);
-        var product = productRepository.GetProductById(productId);
+        //var product = productRepository.GetProductById(productId);
+        var product = context.Products.FirstOrDefault(p => p.ProductId == productId);
 
         if (orderDetailToUpdate == null || product == null)
         {

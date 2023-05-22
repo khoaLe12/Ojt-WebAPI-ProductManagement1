@@ -8,4 +8,5 @@ public interface IOrdersRepository
     Order? GetOrderByID(int? id);
     Order CreateNewOrder(Order newOrder);
     Task<Order> UpdateOrder(int id, Order updatedOrder);
+    Task RemoveOrder(int? id);
 }
